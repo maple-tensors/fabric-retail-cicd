@@ -97,6 +97,21 @@ silver_df = (
         "net_revenue",
         F.round(F.col("gross_amount") - F.col("discount_amount"), 2)
     )
+    .withColumn(
+    "estimated_cost",
+    F.round(F.col("gross_amount") * F.lit(0.65), 2)
+    )
+    .withColumn(
+        "profit_amount",
+        F.round(F.col("net_revenue") - F.col("estimated_cost"), 2)
+    )
+    .withColumn(
+        "profit_margin",
+        F.when(
+            F.col("net_revenue") != 0,
+            F.round(F.col("profit_amount") / F.col("net_revenue"), 4)
+        ).otherwise(F.lit(None))
+    )
 )
 
 display(silver_df)
@@ -114,6 +129,7 @@ display(silver_df)
     silver_df.write
     .format("delta")
     .mode("overwrite")
+    .option("overwriteSchema", "true")
     .saveAsTable("silver_sales")
 )
 
