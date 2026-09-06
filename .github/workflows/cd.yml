@@ -121,3 +121,78 @@ jobs:
 
           echo "Timed out waiting for Fabric deployment."
           exit 1
+
+
+
+      - name: Run Test pipeline
+        id: test_pipeline
+        shell: bash
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.token }}
+          TEST_WORKSPACE_ID: ${{ vars.FABRIC_TEST_WORKSPACE_ID }}
+          TEST_PIPELINE_ID: ${{ vars.FABRIC_TEST_PIPELINE_ID }}
+        run: |
+          HEADERS_FILE=$(mktemp)
+          BODY_FILE=$(mktemp)
+
+          HTTP_CODE=$(curl -sS \
+            -D "$HEADERS_FILE" \
+            -o "$BODY_FILE" \
+            -w "%{http_code}" \
+            -X POST \
+            "https://api.fabric.microsoft.com/v1/workspaces/${TEST_WORKSPACE_ID}/dataPipelines/${TEST_PIPELINE_ID}/jobs/execute/instances" \
+            -H "Authorization: Bearer ${FABRIC_TOKEN}" \
+            -H "Content-Type: application/json")
+
+          echo "Test pipeline HTTP status: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" != "202" ]; then
+            echo "Failed to start Test pipeline:"
+            cat "$BODY_FILE"
+            exit 1
+          fi
+
+          LOCATION=$(awk 'BEGIN{IGNORECASE=1} /^Location:/ {print $2}' "$HEADERS_FILE" | tr -d '\r')
+
+          if [ -z "$LOCATION" ]; then
+            echo "No job Location header returned."
+            exit 1
+          fi
+
+          echo "job_url=$LOCATION" >> "$GITHUB_OUTPUT"
+
+          echo "Test pipeline started."
+
+      - name: Wait for Test pipeline validation
+        shell: bash
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.token }}
+          JOB_URL: ${{ steps.test_pipeline.outputs.job_url }}
+        run: |
+          for ATTEMPT in {1..40}; do
+            RESPONSE=$(curl --fail-with-body -sS \
+              "$JOB_URL" \
+              -H "Authorization: Bearer ${FABRIC_TOKEN}")
+
+            STATUS=$(echo "$RESPONSE" | jq -r '.status')
+
+            echo "Test pipeline status: $STATUS"
+
+            if [ "$STATUS" = "Completed" ]; then
+              echo "Test pipeline and validation passed."
+              exit 0
+            fi
+
+            if [ "$STATUS" = "Failed" ] || \
+               [ "$STATUS" = "Cancelled" ] || \
+               [ "$STATUS" = "Deduped" ]; then
+              echo "Test validation failed."
+              echo "$RESPONSE" | jq
+              exit 1
+            fi
+
+            sleep 15
+          done
+
+          echo "Timed out waiting for Test pipeline."
+          exit 1
