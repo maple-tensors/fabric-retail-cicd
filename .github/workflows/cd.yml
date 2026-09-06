@@ -142,7 +142,7 @@ jobs:
             -X POST \
             "https://api.fabric.microsoft.com/v1/workspaces/${TEST_WORKSPACE_ID}/dataPipelines/${TEST_PIPELINE_ID}/jobs/execute/instances" \
             -H "Authorization: Bearer ${FABRIC_TOKEN}" \
-            -H "Content-Type: application/json"
+            -H "Content-Type: application/json" \
             -d '{}')
 
           echo "Test pipeline HTTP status: $HTTP_CODE"
