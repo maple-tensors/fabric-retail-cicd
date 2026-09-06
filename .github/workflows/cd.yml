@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/github-actions-cd
-
+      - main
 jobs:
   deploy-dev-to-test:
     runs-on: ubuntu-latest
