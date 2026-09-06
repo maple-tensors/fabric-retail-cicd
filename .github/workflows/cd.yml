@@ -37,18 +37,48 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
           
+      - name: Configure service principal Git credentials
+        shell: bash
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.token }}
+          DEV_WORKSPACE_ID: ${{ vars.FABRIC_DEV_WORKSPACE_ID }}
+          GITHUB_CONNECTION_ID: ${{ vars.FABRIC_GITHUB_CONNECTION_ID }}
+        run: |
+          BODY_FILE=$(mktemp)
+
+          HTTP_CODE=$(curl -sS \
+            -o "$BODY_FILE" \
+            -w "%{http_code}" \
+            -X PATCH \
+            "https://api.fabric.microsoft.com/v1/workspaces/${DEV_WORKSPACE_ID}/git/myGitCredentials" \
+            -H "Authorization: Bearer ${FABRIC_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"source\": \"ConfiguredConnection\",
+              \"connectionId\": \"${GITHUB_CONNECTION_ID}\"
+            }")
+
+          echo "Configure Git credentials HTTP status: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Failed to configure Git credentials:"
+            cat "$BODY_FILE"
+            exit 1
+          fi
+
+          echo "Service principal Git credentials configured."
+
       - name: Check service principal Git credentials
         shell: bash
         env:
           FABRIC_TOKEN: ${{ steps.token.outputs.token }}
           DEV_WORKSPACE_ID: ${{ vars.FABRIC_DEV_WORKSPACE_ID }}
         run: |
-          curl -sS \
+          curl --fail-with-body -sS \
             "https://api.fabric.microsoft.com/v1/workspaces/${DEV_WORKSPACE_ID}/git/myGitCredentials" \
             -H "Authorization: Bearer ${FABRIC_TOKEN}" \
-            -H "Content-Type: application/json" \
             | jq
-
+            
       - name: Get Dev Git status
         id: git_status
         shell: bash
