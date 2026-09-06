@@ -36,7 +36,7 @@ jobs:
 
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
-          
+
       - name: Configure service principal Git credentials
         shell: bash
         env:
