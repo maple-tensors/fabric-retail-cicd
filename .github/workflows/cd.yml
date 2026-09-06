@@ -36,6 +36,18 @@ jobs:
 
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+          
+      - name: Check service principal Git credentials
+        shell: bash
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.token }}
+          DEV_WORKSPACE_ID: ${{ vars.FABRIC_DEV_WORKSPACE_ID }}
+        run: |
+          curl -sS \
+            "https://api.fabric.microsoft.com/v1/workspaces/${DEV_WORKSPACE_ID}/git/myGitCredentials" \
+            -H "Authorization: Bearer ${FABRIC_TOKEN}" \
+            -H "Content-Type: application/json" \
+            | jq
 
       - name: Get Dev Git status
         id: git_status
