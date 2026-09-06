@@ -80,6 +80,23 @@ validation_result = {
 
 print(json.dumps(validation_result, indent=2))
 
+assert "silver_sales" in validation_result["tables"]
+assert "gold_daily_sales" in validation_result["tables"]
+
+missing_columns = EXPECTED_SILVER_COLUMNS - set(validation_result["silver_columns"])
+assert not missing_columns, f"Missing Silver columns: {sorted(missing_columns)}"
+
+assert validation_result["invalid_row_count"] == 0, (
+    f"Invalid rows found: {validation_result['invalid_row_count']}"
+)
+
+assert round(validation_result["total_revenue"], 2) == 465.00, (
+    f"Expected Test revenue 465.00, "
+    f"got {validation_result['total_revenue']}"
+)
+
+print("Test release validation passed.")
+
 # METADATA ********************
 
 # META {
