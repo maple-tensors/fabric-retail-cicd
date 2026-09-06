@@ -2,6 +2,9 @@ name: Fabric CD
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/github-actions-cd
 
 jobs:
   test-fabric-auth:
