@@ -1,0 +1,27 @@
+{
+  "pipeline_status": "Succeeded",
+  "tables": [
+    "silver_sales",
+    "gold_daily_sales"
+  ],
+  "silver_columns": [
+    "order_id",
+    "order_date",
+    "customer_id",
+    "product_id",
+    "product_name",
+    "category",
+    "quantity",
+    "unit_price",
+    "discount_pct",
+    "region",
+    "gross_amount",
+    "discount_amount",
+    "net_revenue",
+    "estimated_cost",
+    "profit_amount",
+    "profit_margin"
+  ],
+  "total_revenue": 465.0,
+  "invalid_row_count": 0
+}
