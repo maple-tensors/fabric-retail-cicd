@@ -1,0 +1,48 @@
+name: Fabric CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-fabric-auth:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Fabric access token
+        id: token
+        shell: bash
+        env:
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: |
+          RESPONSE=$(curl --fail-with-body -sS -X POST \
+            "https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "client_id=${CLIENT_ID}" \
+            --data-urlencode "client_secret=${CLIENT_SECRET}" \
+            --data-urlencode "scope=https://api.fabric.microsoft.com/.default" \
+            --data-urlencode "grant_type=client_credentials")
+
+          TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
+
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "Failed to obtain Fabric access token."
+            exit 1
+          fi
+
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+          echo "Successfully obtained Fabric access token."
+
+      - name: Test Fabric API
+        shell: bash
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          curl --fail-with-body -sS \
+            "https://api.fabric.microsoft.com/v1/workspaces" \
+            -H "Authorization: Bearer ${FABRIC_TOKEN}" \
+            -H "Content-Type: application/json" \
+            | jq '.value[] | {displayName, id}'
