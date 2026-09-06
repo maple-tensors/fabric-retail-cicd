@@ -126,7 +126,10 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{
               \"workspaceHead\": \"${WORKSPACE_HEAD}\",
-              \"remoteCommitHash\": \"${REMOTE_COMMIT_HASH}\"
+              \"remoteCommitHash\": \"${REMOTE_COMMIT_HASH}\",
+              \"options\": {
+                \"allowOverrideItems\": true
+              }
             }")
 
           echo "Git update HTTP status: $HTTP_CODE"
