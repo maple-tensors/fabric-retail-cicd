@@ -349,6 +349,28 @@ feature branch
 → automated Test validation
 → Production
 
+## Project Evidence
+
+### Pull Request CI
+
+![Pull Request CI](docs/images/01-pr-ci-passed.png)
+
+### Fabric Deployment Pipeline
+
+![Fabric Deployment Pipeline](docs/images/02-fabric-deployment-pipeline.png)
+
+### Automated CD
+
+![GitHub Actions CD](docs/images/03-github-actions-full-cd.png)
+
+### Automated Test Gate
+
+![Test Validation](docs/images/04-test-validation-passed.png)
+
+### Production Deployment
+
+![Production Deployment](docs/images/05-prod-deployment-passed.png)
+
 ## Skills Demonstrated
 
 Microsoft Fabric, PySpark, Delta Lake, OneLake, Fabric Data Pipelines, Fabric Deployment Pipelines, GitHub, GitHub Actions, Git branching, Pull Requests, CI/CD, Microsoft Entra service principals, REST APIs, automated testing, release validation, Dev/Test/Prod environment promotion.
